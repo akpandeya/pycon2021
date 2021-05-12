@@ -1,6 +1,7 @@
+import functools
 import time
 from functools import lru_cache
-
+import random
 # Example of use of decorator
 @lru_cache()
 def slow_square(number):
@@ -56,11 +57,55 @@ def params(*args, **kwargs):
 def before_and_after(func):
     def wrapper(*args, **kwargs):
         print("BEFORE")
-        func(*args, **kwargs)
+        value = func(*args, **kwargs)
         print("AFTER")
+        return value
     return wrapper
+
 @before_and_after
 def adder(num1, num2):
     return num1 + num2
 
 adder(3, 10)
+
+def define(func):
+    print(f"Defining {func.__name__}") # Runs only at the definintion of the function
+    return func
+
+@define
+def roll_dice():
+    return random.randint(1,6)
+
+# How to ensure that name of the function is not changed by decorator
+def do_twice(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        
+        return (func(*args, **kwargs), func(*args, **kwargs))
+    return wrapper
+FUNCTIONS = {}
+@define
+@do_twice
+def roll_dice():
+    return random.randint(1,6)
+
+# Order may matter
+
+# State in decorator
+
+class BeforeAndAfter:
+    def __init__(self, func):
+        functools.update_wrapper(self, func)
+        self.func = func
+    
+    def __call__(self, *args, **kwargs):
+        print("Before")
+        value = self.func(*args, **kwargs)
+        print ("After")
+        
+        return value
+    
+@BeforeAndAfter
+def greet(name):
+    print(name)
+greet("akp")
